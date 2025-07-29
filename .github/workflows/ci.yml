@@ -1,4 +1,4 @@
-name: Simple Testing Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
@@ -7,9 +7,32 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  backend-tests:
     runs-on: ubuntu-latest
-    name: Run Tests
+    name: Backend Tests
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    - name: Install Dependencies
+      run: |
+        cd backend
+        npm install
+    
+    - name: Run Tests
+      run: |
+        cd backend
+        npm test
+      continue-on-error: true
+
+  frontend-tests:
+    runs-on: ubuntu-latest
+    name: Frontend Tests
     
     steps:
     - uses: actions/checkout@v4
@@ -24,19 +47,13 @@ jobs:
         cd backend && npm install
         cd ../frontend && npm install
     
-    - name: Run Backend Tests
-      run: |
-        cd backend
-        npm test
-      continue-on-error: true
-    
-    - name: Start Backend Server
+    - name: Start Backend
       run: |
         cd backend
         npm start &
-        sleep 10
+        sleep 15
     
-    - name: Run Frontend Tests
+    - name: Run Cypress Tests
       run: |
         cd frontend
         npm run test:e2e
@@ -49,5 +66,4 @@ jobs:
         name: test-artifacts
         path: |
           frontend/cypress/screenshots/
-          frontend/cypress/videos/
-          backend/coverage/ 
+          frontend/cypress/videos/ 
