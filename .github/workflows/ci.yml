@@ -33,6 +33,7 @@ jobs:
   frontend-tests:
     runs-on: ubuntu-latest
     name: Frontend Tests
+    needs: backend-tests
     
     steps:
     - uses: actions/checkout@v4
@@ -47,11 +48,19 @@ jobs:
         cd backend && npm install
         cd ../frontend && npm install
     
-    - name: Start Backend
+    - name: Start Backend Server
       run: |
         cd backend
         npm start &
-        sleep 15
+        sleep 20
+        curl -f http://localhost:5000/health || echo "Backend health check failed"
+    
+    - name: Start Frontend Server
+      run: |
+        cd frontend
+        npm start &
+        sleep 30
+        curl -f http://localhost:3000 || echo "Frontend health check failed"
     
     - name: Run Cypress Tests
       run: |
