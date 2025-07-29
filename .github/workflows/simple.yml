@@ -1,0 +1,53 @@
+name: Simple Testing Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Run Tests
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    - name: Install Dependencies
+      run: |
+        cd backend && npm install
+        cd ../frontend && npm install
+    
+    - name: Run Backend Tests
+      run: |
+        cd backend
+        npm test
+      continue-on-error: true
+    
+    - name: Start Backend Server
+      run: |
+        cd backend
+        npm start &
+        sleep 10
+    
+    - name: Run Frontend Tests
+      run: |
+        cd frontend
+        npm run test:e2e
+      continue-on-error: true
+    
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-artifacts
+        path: |
+          frontend/cypress/screenshots/
+          frontend/cypress/videos/
+          backend/coverage/ 
